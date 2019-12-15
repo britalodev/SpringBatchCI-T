@@ -1,8 +1,13 @@
 package br.com.italo.config;
 
+import java.util.Arrays;
+
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.FlatFileItemWriter;
@@ -36,6 +41,7 @@ public class CSVtoCSVConfig {
 	@Bean
 	public FlatFileItemReader<InputCSV> csvAnimeReader() {
 		FlatFileItemReader<InputCSV> reader = new FlatFileItemReader<InputCSV>();
+		reader.setLinesToSkip(1);
 		reader.setResource(new ClassPathResource("input.csv"));
 		reader.setLineMapper(new DefaultLineMapper<InputCSV>() {
 			{
@@ -56,7 +62,7 @@ public class CSVtoCSVConfig {
 	
 	
 	@Bean
-	ItemProcessor<InputCSV, OutPutCore> csvAnimeProcessor() {
+	ItemProcessor<InputCSV, OutPutCore> csvProcessor() {
 		return new CSVInputProcessor();
 	}
 	
@@ -64,7 +70,8 @@ public class CSVtoCSVConfig {
 	@Bean
 	public FlatFileItemWriter<OutPutCore> writer() {
 		FlatFileItemWriter<OutPutCore> writer = new FlatFileItemWriter<OutPutCore>();
-		writer.setResource(new FileSystemResource("/home/italo/person.csv"));
+		writer.setResource(new FileSystemResource("output.csv"));
+		writer.setHeaderCallback(new StringHeaderWriter("Número,Par/Impar,Multiplo17,Resto17"));
 		writer.setLineAggregator(new DelimitedLineAggregator<OutPutCore>() {
 			{
 				setDelimiter(",");
@@ -77,6 +84,17 @@ public class CSVtoCSVConfig {
 		});
 
 		return writer;
+	}
+	
+	@Bean
+	public Step step1() {
+		return stepBuilderFactory.get("step1").<InputCSV, OutPutCore>chunk(0).reader(csvAnimeReader()).processor(csvProcessor())
+				.writer(writer()).build();
+	}
+
+	@Bean
+	public Job exportToCSV() {
+		return jobBuilderFactory.get("exportToCSV").incrementer(new RunIdIncrementer()).flow(step1()).end().build();
 	}
 	
 }
