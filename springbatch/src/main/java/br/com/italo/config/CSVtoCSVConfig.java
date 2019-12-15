@@ -70,7 +70,7 @@ public class CSVtoCSVConfig {
 	@Bean
 	public FlatFileItemWriter<OutPutCore> writer() {
 		FlatFileItemWriter<OutPutCore> writer = new FlatFileItemWriter<OutPutCore>();
-		writer.setResource(new FileSystemResource("output.csv"));
+		writer.setResource(new FileSystemResource("src\\main\\resources\\output.csv"));
 		writer.setHeaderCallback(new StringHeaderWriter("Número,Par/Impar,Multiplo17,Resto17"));
 		writer.setLineAggregator(new DelimitedLineAggregator<OutPutCore>() {
 			{
