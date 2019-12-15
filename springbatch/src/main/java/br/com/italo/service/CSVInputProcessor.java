@@ -2,6 +2,7 @@ package br.com.italo.service;
 
 import org.springframework.batch.item.ItemProcessor;
 
+import br.com.italo.config.CSVtoCSVConfig;
 import br.com.italo.enums.EvenOrOddEnum;
 import br.com.italo.model.InputCSV;
 import br.com.italo.model.OutPutCore;
@@ -9,8 +10,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class CSVInputProcessor implements ItemProcessor<InputCSV, OutPutCore> {
-
-	
 	
 	@Override
 	public OutPutCore process(final InputCSV item) throws Exception {
@@ -24,6 +23,7 @@ public class CSVInputProcessor implements ItemProcessor<InputCSV, OutPutCore> {
 		outPutCore.setMultiplo17(multipletOf17(numero).toString());
 		outPutCore.setNumero(String.valueOf(numero));
 		
+		totalizador(outPutCore);
 		
 		log.info("Converting (" + numero + ") into (" + outPutCore + ")");
 		return outPutCore;
@@ -44,4 +44,14 @@ public class CSVInputProcessor implements ItemProcessor<InputCSV, OutPutCore> {
 		return rest;
 	}
 	
+	private void totalizador(OutPutCore outPutCore) {
+		
+		if(outPutCore.getParOuImpar().equals(EvenOrOddEnum.PAR)){
+			CSVtoCSVConfig.SOMAPAR = CSVtoCSVConfig.SOMAPAR + Integer.valueOf(outPutCore.getNumero());
+			CSVtoCSVConfig.QUANTIDADEPAR++;
+		} else {
+			CSVtoCSVConfig.SOMAIMPAR = CSVtoCSVConfig.SOMAIMPAR + Integer.valueOf(outPutCore.getNumero());
+			CSVtoCSVConfig.QUANTIDADEIMPAR++;
+		}
+	}
 }
